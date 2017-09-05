@@ -1,0 +1,6 @@
+elasticsearch:
+  url: http://localhost:9200
+  sniff: true
+
+redis:
+  url: redis://localhost:6379
