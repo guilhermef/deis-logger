@@ -10,11 +10,12 @@ MAINTAINER TFG Co <backend@tfgco.com>
 
 RUN mkdir -p /app/bin
 
-RUN apk update
-RUN apk add git make musl-dev gcc
+RUN apk add --no-cache git make musl-dev gcc
 
 ADD . /go/src/github.com/topfreegames/deis-logger
 RUN cd /go/src/github.com/topfreegames/deis-logger && \
+  go get -u github.com/golang/dep/cmd/dep && \
+  dep ensure && \
   make build && \
   mv bin/deis-logger /app/deis-logger && \
   mv config /app/config && \
