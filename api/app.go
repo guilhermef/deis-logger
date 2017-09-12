@@ -180,12 +180,24 @@ func (a *App) configureNewRelic() error {
 
 func (a *App) getRouter() *mux.Router {
 	r := mux.NewRouter()
-	r.Handle("/healthz", NewHealthcheckHandler(a)).Methods("GET")
-	r.Handle("/healthz/", NewHealthcheckHandler(a)).Methods("GET")
-	r.Handle("/logs/{app}", NewLogHandler(a)).Methods("GET")
-	r.Handle("/logs/{app}/", NewLogHandler(a)).Methods("GET")
-	r.Handle("/logs/{app}/tail", NewLogTailHandler(a)).Methods("GET")
-	r.Handle("/logs/{app}/tail/", NewLogTailHandler(a)).Methods("GET")
+	r.Handle(
+		newrelic.WrapHandle(a.NewRelic, "/healthz", NewHealthcheckHandler(a)),
+	).Methods("GET")
+	r.Handle(
+		newrelic.WrapHandle(a.NewRelic, "/healthz/", NewHealthcheckHandler(a)),
+	).Methods("GET")
+	r.Handle(
+		newrelic.WrapHandle(a.NewRelic, "/logs/{app}", NewLogHandler(a)),
+	).Methods("GET")
+	r.Handle(
+		newrelic.WrapHandle(a.NewRelic, "/logs/{app}/", NewLogHandler(a)),
+	).Methods("GET")
+	r.Handle(
+		newrelic.WrapHandle(a.NewRelic, "/logs/{app}/tail", NewLogTailHandler(a)),
+	).Methods("GET")
+	r.Handle(
+		newrelic.WrapHandle(a.NewRelic, "/logs/{app}/tail/", NewLogTailHandler(a)),
+	).Methods("GET")
 	return r
 }
 
