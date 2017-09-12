@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	elastic "gopkg.in/olivere/elastic.v5"
 
@@ -22,9 +23,12 @@ import (
 // LogMessage struct
 type LogMessage struct {
 	Log        string `json:"log"`
+	Timestamp  string `json:"@timestamp"`
 	Kubernetes struct {
-		Labels struct {
-			Type string `json:"type"`
+		PodName string `json:"pod_name"`
+		Labels  struct {
+			Type    string `json:"type"`
+			Version string `json:"version"`
 		} `json:"labels"`
 	} `json:"kubernetes"`
 }
@@ -50,7 +54,13 @@ func (h *LogHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	ctx := context.Background()
 	vars := mux.Vars(r)
-	fetchSourceContext := elastic.NewFetchSourceContext(true).Include("log", "kubernetes.labels.type")
+	fetchSourceContext := elastic.NewFetchSourceContext(true).Include(
+		"@timestamp",
+		"log",
+		"kubernetes.pod_name",
+		"kubernetes.labels.type",
+		"kubernetes.labels.version",
+	)
 	searchResult, _ := h.App.ElasticSearchClient.
 		Search().
 		Index("k8s-"+vars["app"]+"-stash-*").
@@ -66,7 +76,13 @@ func (h *LogHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			h.App.Logger.Error(err)
 		}
-		// io.Copy(w, fmt.Fprintf("[%s]%s", l.Kubernetes.Labels.Type, l.Log))
-		fmt.Fprintf(w, "[%s]%s", l.Kubernetes.Labels.Type, l.Log)
+		podName := strings.Split(l.Kubernetes.PodName, "-")
+		fmt.Fprintf(w, "%s %s[%s.%s.%s]: %s",
+			l.Timestamp, vars["app"],
+			l.Kubernetes.Labels.Type,
+			l.Kubernetes.Labels.Version,
+			podName[len(podName)-1],
+			l.Log,
+		)
 	}
 }
