@@ -64,7 +64,7 @@ func InitConfig() {
 		config.SetConfigFile(ConfigFile)
 	}
 	config.SetConfigType("yaml")
-	config.SetEnvPrefix("deis-logger")
+	config.SetEnvPrefix("logger")
 	config.AddConfigPath(".")
 	config.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	config.AutomaticEnv()
